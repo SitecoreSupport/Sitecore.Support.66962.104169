@@ -1,0 +1,146 @@
+﻿@using Sitecore.Forms.Mvc.Interfaces
+@using Sitecore.Support.Forms.Mvc.Models.Fields
+@model ListField
+
+
+@{
+  var hasColumnModel = Model as IHasColumns;
+  var columns = hasColumnModel == null ? 1 : hasColumnModel.Columns;
+  if (columns == 0)
+  {
+      columns = 1;
+  }
+  var direction = hasColumnModel == null ? Direction.Horizontal : hasColumnModel.Direction;
+  var colMod = Model.Items.Count % columns;
+  var rows = colMod > 0 ? Model.Items.Count / columns + 1 : Model.Items.Count / columns;
+  var css = Model.CssClass;
+  var index = 0;
+}
+
+@if (!Model.Visible)
+{
+    return;
+}
+
+<div class="@Model.CssClass field-border">
+    @if (Model.ShowLegend)
+    {
+    <label for="@Html.AttributeEncode(Model.Name)" class="@Model.CssClass field-title">@Html.Encode(Model.Title)</label>
+    }
+
+    <div class="@Model.CssClass field-panel">
+
+        <div class="@Model.CssClass list-content ">
+
+            @Html.HiddenFor(x => Model.FieldId)
+
+            @if (direction == Direction.Horizontal)
+            {
+
+            <table class="@css">
+
+                @for (int col = 0; col < rows; col++)
+                {
+                <tr>
+                    @{
+                      for (int i = 0; i < columns; i++)
+                      {
+                          if (Model.Items.Count == index)
+                          {
+                              break;
+                          }
+                        <td>
+                            @if (Model is CheckBoxListField)
+                            {
+                            @Html.HiddenFor(m => @Model.Items[index].Value)
+                            @Html.HiddenFor(m => @Model.Items[index].Text)
+                            @Html.CheckBoxFor(x => @Model.Items[index].Selected)
+                            @Html.DisplayFor(m => @Model.Items[index].Text)
+
+                            }
+                            else
+                            {
+                            @Html.RadioButtonFor(x => Model.Value, Model.Items[index].Value, (Model.Items[index].Selected) ? new { Checked = "checked" } : null)
+
+                            @Html.Encode(@Model.Items[index].Text)
+
+                            }
+
+                        </td>
+                          index++;
+                      }
+                    }
+                </tr>
+                      }
+            </table>
+                      }
+                      else
+                      {
+                        <table>
+
+                            @for (int row = 0; row < rows; row++)
+                            {
+                                index = row;
+
+                            <tr>
+
+                                @for (int column = 1; column <= columns; column++)
+                                {
+
+                                    if (index >= Model.Items.Count) { break; }
+
+                                    <td>
+
+                                        @if (Model is CheckBoxListField)
+                                        {
+                                        @Html.HiddenFor(m => @Model.Items[index].Value)
+                                        @Html.HiddenFor(m => @Model.Items[index].Text)
+                                        @Html.CheckBoxFor(x => @Model.Items[index].Selected)
+                                        @Html.DisplayFor(m => @Model.Items[index].Text)
+
+                                        }
+                                        else
+                                        {
+                                        @Html.RadioButtonFor(x => Model.Value, Model.Items[index].Value, (Model.Items[index].Selected) ? new { Checked = "checked" } : null)
+                                        @Html.Encode(@Model.Items[index].Text)
+                                        }
+
+
+
+                                    </td>
+
+                                    if (colMod > 0 && column > colMod)
+                                    {
+                                        index += rows - 1;
+                                    }
+                                    else
+                                    {
+                                        if (row == rows - 1 && column >= colMod && colMod > 0)
+                                        {
+                                            break;
+                                        }
+                                        index += rows;
+                                    }
+                                }
+                            </tr>
+                            }
+
+                        </table>
+                      }
+
+        </div>
+
+        @Html.ValidationMessageFor(field => Model.Value, null, new { @class = "scfValidator " + @Model.CssClass + " field-error" })
+
+        @if (!String.IsNullOrEmpty(Model.Information))
+        {
+        <span class=" @Model.CssClass field-info">@Html.DisplayFor(x => Model.Information)</span>
+        }
+    </div>
+
+    @if (Model.IsRequired)
+    {
+    <span class="@Model.CssClass field-required">*</span>
+    }
+
+</div>
